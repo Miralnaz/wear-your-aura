@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { db } from './firebase'; 
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, deleteDoc, doc, setDoc } from "firebase/firestore";
 
-function AdminDashboard() {
+const AdminDashboard = () => {
   const [adminProducts, setAdminProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [siteSettings, setSiteSettings] = useState({
@@ -11,7 +11,6 @@ function AdminDashboard() {
     heroImage: "https://images.unsplash.com/photo-1583467875263-d50dec37a88c?w=1200"
   });
 
-  // 1. Firebase se Products mangwana
   const fetchProducts = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "products"));
@@ -23,11 +22,14 @@ function AdminDashboard() {
     }
   };
 
-  // 2. Site Settings load karna (WhatsApp/EasyPaisa)
   const fetchSettings = async () => {
-    const querySnapshot = await getDocs(collection(db, "settings"));
-    if (!querySnapshot.empty) {
-      setSiteSettings(querySnapshot.docs[0].data());
+    try {
+      const querySnapshot = await getDocs(collection(db, "settings"));
+      if (!querySnapshot.empty) {
+        setSiteSettings(querySnapshot.docs[0].data());
+      }
+    } catch (err) {
+      console.error("Settings Error:", err);
     }
   };
 
@@ -36,7 +38,6 @@ function AdminDashboard() {
     fetchSettings();
   }, []);
 
-  // 3. Product Add karna
   const addProduct = async () => {
     const name = prompt("Enter Perfume Name:");
     const price = prompt("Enter Price:");
@@ -46,7 +47,6 @@ function AdminDashboard() {
     }
   };
 
-  // 4. Product Delete karna
   const deleteProduct = async (id) => {
     if (window.confirm("Pakka delete karna hai?")) {
       await deleteDoc(doc(db, "products", id));
@@ -54,7 +54,6 @@ function AdminDashboard() {
     }
   };
 
-  // 5. Site Settings SAVE karna (Naya Function)
   const handleSaveSettings = async () => {
     try {
       await setDoc(doc(db, "settings", "global"), siteSettings);
@@ -67,12 +66,10 @@ function AdminDashboard() {
   return (
     <div style={{ padding: '40px', fontFamily: 'sans-serif', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
       <div style={{ maxWidth: '1000px', margin: '0 auto', backgroundColor: '#fff', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
-        
         <h1 style={{ textAlign: 'center', borderBottom: '2px solid #000', paddingBottom: '20px', marginBottom: '40px' }}>OWNER CONTROL PANEL</h1>
 
-        {/* Site Settings Section */}
         <section style={{ marginBottom: '50px', padding: '20px', border: '1px solid #eee', borderRadius: '10px' }}>
-          <h2 style={{ fontSize: '1.2rem', color: '#333' }}>🌐 SITE SETTINGS (Home Page Control)</h2>
+          <h2 style={{ fontSize: '1.2rem', color: '#333' }}>🌐 SITE SETTINGS</h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
             <div>
               <label>WhatsApp:</label>
@@ -86,13 +83,11 @@ function AdminDashboard() {
           <button onClick={handleSaveSettings} style={{ marginTop: '20px', backgroundColor: '#28a745', color: '#fff', padding: '10px 25px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>SAVE SETTINGS</button>
         </section>
 
-        {/* Inventory Management Section */}
         <section style={{ marginBottom: '50px', padding: '20px', border: '1px solid #eee', borderRadius: '10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: '1.2rem', color: '#333' }}>📦 MANAGE PRODUCTS (Live Database)</h2>
+            <h2 style={{ fontSize: '1.2rem', color: '#333' }}>📦 MANAGE PRODUCTS</h2>
             <button onClick={addProduct} style={{ backgroundColor: '#000', color: '#fff', padding: '8px 15px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>+ ADD NEW PERFUME</button>
           </div>
-          
           {loading ? <p>Data load ho raha hai...</p> : (
             <table style={{ width: '100%', marginTop: '20px', borderCollapse: 'collapse' }}>
               <thead>
@@ -116,13 +111,12 @@ function AdminDashboard() {
             </table>
           )}
         </section>
-
         <div style={{ textAlign: 'center', marginTop: '40px' }}>
           <a href="/" style={{ color: '#888', textDecoration: 'none', fontSize: '0.8rem' }}>← Back to Live Website</a>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default AdminDashboard;
