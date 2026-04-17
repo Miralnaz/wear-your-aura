@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from './firebase'; 
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc } from "firebase/firestore";
 
 function AdminDashboard() {
   const [adminProducts, setAdminProducts] = useState([]);
@@ -23,23 +23,44 @@ function AdminDashboard() {
     }
   };
 
-  useEffect(() => { fetchProducts(); }, []);
+  // 2. Site Settings load karna (WhatsApp/EasyPaisa)
+  const fetchSettings = async () => {
+    const querySnapshot = await getDocs(collection(db, "settings"));
+    if (!querySnapshot.empty) {
+      setSiteSettings(querySnapshot.docs[0].data());
+    }
+  };
 
-  // 2. Product Add karna
+  useEffect(() => { 
+    fetchProducts(); 
+    fetchSettings();
+  }, []);
+
+  // 3. Product Add karna
   const addProduct = async () => {
     const name = prompt("Enter Perfume Name:");
     const price = prompt("Enter Price:");
     if (name && price) {
       await addDoc(collection(db, "products"), { name, price: parseInt(price) });
-      fetchProducts(); // List refresh
+      fetchProducts(); 
     }
   };
 
-  // 3. Product Delete karna
+  // 4. Product Delete karna
   const deleteProduct = async (id) => {
     if (window.confirm("Pakka delete karna hai?")) {
       await deleteDoc(doc(db, "products", id));
       fetchProducts();
+    }
+  };
+
+  // 5. Site Settings SAVE karna (Naya Function)
+  const handleSaveSettings = async () => {
+    try {
+      await setDoc(doc(db, "settings", "global"), siteSettings);
+      alert("Settings Successfully Saved!");
+    } catch (err) {
+      alert("Error saving settings!");
     }
   };
 
@@ -62,7 +83,7 @@ function AdminDashboard() {
               <input type="text" value={siteSettings.easypaisa} onChange={(e) => setSiteSettings({...siteSettings, easypaisa: e.target.value})} style={{ width: '100%', padding: '10px', marginTop: '5px' }} />
             </div>
           </div>
-          <button style={{ marginTop: '20px', backgroundColor: '#28a745', color: '#fff', padding: '10px 25px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>SAVE SETTINGS</button>
+          <button onClick={handleSaveSettings} style={{ marginTop: '20px', backgroundColor: '#28a745', color: '#fff', padding: '10px 25px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>SAVE SETTINGS</button>
         </section>
 
         {/* Inventory Management Section */}
